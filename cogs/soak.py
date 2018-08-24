@@ -68,7 +68,8 @@ class Soak:
         receivers = []
         for i in range(len_receivers):
             user = random.choice(online_users)
-            receivers.append(online_users.remove(user))
+            receivers.append(user)
+            online_users.remove(user)
             mysql.check_for_user(user.id)
             mysql.add_tip(snowflake, user.id, amount_split)
 
