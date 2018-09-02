@@ -12,6 +12,7 @@ class Soak:
     def __init__(self, bot):
         self.bot = bot
         soak_config = parsing.parse_json('config.json')['soak']
+        config = parsing.parse_json('config.json')        
         '''
         soak_max_recipients sets the max recipients for a soak. chosen randomly.
         soak_min_received sets the minimum possible soak received for a user.
@@ -22,6 +23,7 @@ class Soak:
         self.use_max_recipients = soak_config["use_max_recipients"]
         self.soak_min_received = soak_config["soak_min_received"]
         self.use_min_received = soak_config["use_min_received"]
+        self.currency_symbol = config["currency_symbol"]        
 
     @commands.command(pass_context=True)
     @commands.check(checks.allow_soak)
@@ -73,10 +75,10 @@ class Soak:
             mysql.check_for_user(user.id)
             mysql.add_tip(snowflake, user.id, amount_split)
 
-        long_soak_msg = "{} **Soaked {} CRU on {} [{}] :money_with_wings:**".format(ctx.message.author.mention, str(amount_split), ', '.join([x.mention for x in receivers]), str(amount))
+        long_soak_msg = "{} **Soaked {} {} on {} [{}] :moneybag:**".format(ctx.message.author.mention, str(amount_split), self.currency_symbol, ', '.join([x.mention for x in receivers]), str(amount))
 
         if len(long_soak_msg) > 2000:
-            await self.bot.say("{} **Soaked {} CRU on {} users [{}] :money_with_wings:**".format(ctx.message.author.mention, str(amount_split), len_receivers, str(amount)))
+            await self.bot.say("{} **Soaked {} {} on {} users [{}] :moneybag:**".format(ctx.message.author.mention, str(amount_split), self.currency_symbol, len_receivers, str(amount)))
         else:
             await self.bot.say(long_soak_msg)
 

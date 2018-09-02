@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands
-from utils import rpc_module, mysql_module
+from utils import rpc_module, mysql_module, parsing
 
 #result_set = database response with parameters from query
 #db_bal = nomenclature for result_set["balance"]
@@ -15,14 +15,16 @@ class Balance:
 
     def __init__(self, bot):
         self.bot = bot
+        config = parsing.parse_json('config.json')
+        self.currency_symbol = config["currency_symbol"]          
 
     async def do_embed(self, name, db_bal, db_bal_unconfirmed):
         # Simple embed function for displaying username and balance
         embed = discord.Embed(colour=0xff0000)
         embed.add_field(name="User", value=name.mention)
-        embed.add_field(name="Balance", value="{:.8f} CRU".format(round(float(db_bal), 8)))
+        embed.add_field(name="Balance", value="{:.8f} {}".format(round(float(db_bal), 8),self.currency_symbol))        
         if float(db_bal_unconfirmed) != 0.0:
-            embed.add_field(name="Unconfirmed Deposits", value="{:.8f} CRU".format(round(float(db_bal_unconfirmed), 8)))
+            embed.add_field(name="Unconfirmed Deposits", value="{:.8f} {}".format(round(float(db_bal_unconfirmed), 8),self.currency_symbol))
         try:
             await self.bot.say(embed=embed)
         except discord.HTTPException:
