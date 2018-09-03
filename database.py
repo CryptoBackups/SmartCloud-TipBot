@@ -35,9 +35,6 @@ def run():
             balance DECIMAL(20, 8) NOT NULL,
             balance_unconfirmed DECIMAL(20, 8) NOT NULL,
             address VARCHAR(34) NOT NULL,
-            last_msg_time DATETIME,            
-            rain_last_msg_time DATETIME,
-            rain_msg_count INT NOT NULL DEFAULT 0,            
             PRIMARY KEY (snowflake_pk)
             )""")
         cursor.execute("""CREATE TABLE IF NOT EXISTS deposit (
