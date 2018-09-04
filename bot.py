@@ -44,6 +44,9 @@ async def on_message(message):
     if message.author.id == bot.user.id:
         return
 
+    if Mysql.user_last_msg_check(message.author.id, message.content, is_private_dm(message.channel)) == False:
+        return        
+
     await bot.process_commands(message)
 
 def is_private_dm(channel):

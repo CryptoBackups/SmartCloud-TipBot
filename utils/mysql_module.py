@@ -2,6 +2,7 @@ import pymysql.cursors
 import discord
 from utils import parsing, rpc_module
 from decimal import Decimal
+import datetime
 
 rpc = rpc_module.Rpc()
 
@@ -305,3 +306,23 @@ class Mysql:
             cursor.close()
             self.__connection.commit()
 # endregion
+
+# region Last Message
+
+        def user_last_msg_check(self, user_id, content, is_private):
+            # Get user data or create the user if not found
+            user=self.check_for_user(user_id)
+
+            # If user was created, get user values
+            if user is None:
+                user=self.get_user(user_id)
+
+            # Get difference in seconds between now and last msg. If it is less than 1s, return False
+            if user["last_msg_time"] is not None:
+                since_last_msg_s = (datetime.datetime.utcnow() - user["last_msg_time"]).total_seconds()
+                if since_last_msg_s < 1:
+                    return False
+            else:
+                since_last_msg_s = None
+                           
+            return True
