@@ -46,6 +46,11 @@ async def on_message(message):
 
     await bot.process_commands(message)
 
+def is_private_dm(msg):
+    if msg.channel in bot.private_channels:
+       return True
+    return False 
+
 async def send_cmd_help(ctx):
     if ctx.invoked_subcommand:
         pages = bot.formatter.format_help_for(ctx, ctx.invoked_subcommand)
