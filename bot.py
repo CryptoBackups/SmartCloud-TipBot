@@ -46,8 +46,8 @@ async def on_message(message):
 
     await bot.process_commands(message)
 
-def is_private_dm(msg):
-    if msg.channel in bot.private_channels:
+def is_private_dm(channel):
+    if channel in bot.private_channels:
        return True
     return False 
 

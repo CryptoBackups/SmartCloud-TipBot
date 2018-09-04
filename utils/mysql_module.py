@@ -62,7 +62,7 @@ class Mysql:
             """
             cursor = self.__setup_cursor(
                 pymysql.cursors.DictCursor)
-            to_exec = "SELECT snowflake_pk, address, balance, balance_unconfirmed FROM users WHERE snowflake_pk LIKE %s"
+            to_exec = "SELECT snowflake_pk, address, balance, balance_unconfirmed, last_msg_time, rain_last_msg_time, rain_msg_count FROM users WHERE snowflake_pk LIKE %s"
             cursor.execute(to_exec, (str(snowflake)))
             result_set = cursor.fetchone()
             cursor.close()
@@ -70,11 +70,13 @@ class Mysql:
             if result_set is None:
                 address = rpc.getnewaddress(snowflake)
                 self.make_user(snowflake, address)
+            
+            return result_set
 
         def get_user(self, snowflake):
             cursor = self.__setup_cursor(
                 pymysql.cursors.DictCursor)
-            to_exec = "SELECT snowflake_pk, balance, balance_unconfirmed, address FROM users WHERE snowflake_pk LIKE %s"
+            to_exec = "SELECT snowflake_pk, balance, balance_unconfirmed, address, last_msg_time, rain_last_msg_time, rain_msg_count FROM users WHERE snowflake_pk LIKE %s"
             cursor.execute(to_exec, (str(snowflake)))
             result_set = cursor.fetchone()
             cursor.close()
@@ -83,7 +85,7 @@ class Mysql:
         def get_user_by_address(self, address):
             cursor = self.__setup_cursor(
                 pymysql.cursors.DictCursor)           
-            to_exec = "SELECT snowflake_pk, balance, balance_unconfirmed, address FROM users WHERE address LIKE %s"
+            to_exec = "SELECT snowflake_pk, balance, balance_unconfirmed, address, last_msg_time, rain_last_msg_time, rain_msg_count FROM users WHERE address LIKE %s"
             cursor.execute(to_exec, (str(address)))
             result_set = cursor.fetchone()
             cursor.close()
