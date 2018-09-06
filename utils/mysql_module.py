@@ -82,7 +82,7 @@ class Mysql:
             cursor.execute(to_exec, (str(snowflake)))
             result_set = cursor.fetchone()
             cursor.close()
-            return result_set
+            return result_set         
 
         def get_user_by_address(self, address):
             cursor = self.__setup_cursor(
@@ -384,14 +384,34 @@ class Mysql:
             self.__connection.commit()                      
 # endregion
 
+# region Active users
+
+        def get_active_users(self, user_activity_since_minutes, min_num_messages_requred=0):         
+            since_ts = datetime.datetime.utcnow() - datetime.timedelta(minutes=user_activity_since_minutes)
+        
+            cursor = self.__setup_cursor(
+                pymysql.cursors.DictCursor)
+            to_exec = "SELECT snowflake_pk, balance, balance_unconfirmed, address, last_msg_time, rain_last_msg_time, rain_msg_count FROM users WHERE last_msg_time > %s ORDER BY snowflake_pk"
+            cursor.execute(to_exec, (str(since_ts)))
+            users = cursor.fetchall()
+            cursor.close()
+            
+            return_ids = []
+            for user in users:
+                if int(user["rain_msg_count"]) >= min_num_messages_requred:
+                    return_ids.append(user["snowflake_pk"])
+            return return_ids
+
+# endregion
+
 # region Helper methods
         def unicode_strip(self, content):
-	        pattern = re.compile("["
+            pattern = re.compile("["
                       u"\U0001F600-\U0001F64F"
                       u"\U0001F300-\U0001F5FF"
                       u"\U0001F1E0-\U0001F1FF"
                       u"\U00002702-\U000027B0"
                       u"\U000024C2-\U0001F251"
                       "]+", flags=re.UNICODE)
-	        return pattern.sub(r'', content)
+            return pattern.sub(r'', content)
 # endregion
