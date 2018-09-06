@@ -3,6 +3,7 @@ import discord
 from utils import parsing, rpc_module
 from decimal import Decimal
 import datetime
+import re
 
 rpc = rpc_module.Rpc()
 
@@ -307,8 +308,7 @@ class Mysql:
             self.__connection.commit()
 # endregion
 
-# region Last Message
-
+# region Last message
         def user_last_msg_check(self, user_id, content, is_private):
             # Get user data or create the user if not found
             user=self.check_for_user(user_id)
@@ -324,5 +324,74 @@ class Mysql:
                     return False
             else:
                 since_last_msg_s = None
-                           
+
+            # Do not process the messages made in DM
+            if not is_private:
+                self.update_last_msg(user, since_last_msg_s, content)
+
             return True
+
+        def  update_last_msg(self, user, last_msg_time, content):
+            rain_config = parsing.parse_json('config.json')['rain']
+            min_num_words_required = rain_config["min_num_words_required"]
+            delay_between_messages_required_s = rain_config["delay_between_messages_required_s"]            
+            user_activity_required_m = rain_config["user_activity_required_m"]
+
+            content_adjusted = self.unicode_strip(content)
+            words = content_adjusted.split(' ')
+            adjusted_count = 0
+            prev_len = 0
+            for word in words:
+                word = word.strip()
+                cur_len = len(word)
+                if cur_len > 0:
+                    if word.startswith(":") and word.endswith(":"):
+                        continue
+                    if prev_len == 0:
+                        prev_len = cur_len
+                        adjusted_count += 1
+                    else:
+                        res = prev_len % cur_len
+                        prev_len = cur_len
+                        if res != 0:
+                            adjusted_count += 1
+                if adjusted_count >= min_num_words_required:
+                    break
+
+            if last_msg_time is None:
+                user["rain_msg_count"] = 0
+            else:                
+                if last_msg_time >= (user_activity_required_m * 60):
+                    user["rain_msg_count"] = 0
+            
+            is_accepted_delay_between_messages = False
+            if user["rain_last_msg_time"] is None:
+                is_accepted_delay_between_messages = True
+            elif (datetime.datetime.utcnow() - user["rain_last_msg_time"]).total_seconds() > delay_between_messages_required_s:
+                is_accepted_delay_between_messages = True
+
+            if adjusted_count >= min_num_words_required and is_accepted_delay_between_messages:
+                user["rain_msg_count"] += 1
+                user["rain_last_msg_time"] = datetime.datetime.utcnow()
+            user["last_msg_time"]=datetime.datetime.utcnow()
+
+            cursor = self.__setup_cursor(
+                pymysql.cursors.DictCursor)
+            to_exec = "UPDATE users SET last_msg_time = %s, rain_last_msg_time = %s, rain_msg_count = %s WHERE snowflake_pk = %s"
+            cursor.execute(to_exec, (user["last_msg_time"], user["rain_last_msg_time"], user["rain_msg_count"], user["snowflake_pk"]))
+
+            cursor.close()
+            self.__connection.commit()                      
+# endregion
+
+# region Helper methods
+        def unicode_strip(self, content):
+	        pattern = re.compile("["
+                      u"\U0001F600-\U0001F64F"
+                      u"\U0001F300-\U0001F5FF"
+                      u"\U0001F1E0-\U0001F1FF"
+                      u"\U00002702-\U000027B0"
+                      u"\U000024C2-\U0001F251"
+                      "]+", flags=re.UNICODE)
+	        return pattern.sub(r'', content)
+# endregion
