@@ -1,6 +1,6 @@
 import pymysql.cursors
 import discord
-from utils import parsing, rpc_module
+from utils import parsing, rpc_module, helpers
 from decimal import Decimal
 import datetime
 import re
@@ -337,7 +337,7 @@ class Mysql:
             delay_between_messages_required_s = rain_config["delay_between_messages_required_s"]            
             user_activity_required_m = rain_config["user_activity_required_m"]
 
-            content_adjusted = self.unicode_strip(content)
+            content_adjusted = helpers.unicode_strip(content)
             words = content_adjusted.split(' ')
             adjusted_count = 0
             prev_len = 0
@@ -402,16 +402,4 @@ class Mysql:
                     return_ids.append(user["snowflake_pk"])
             return return_ids
 
-# endregion
-
-# region Helper methods
-        def unicode_strip(self, content):
-            pattern = re.compile("["
-                      u"\U0001F600-\U0001F64F"
-                      u"\U0001F300-\U0001F5FF"
-                      u"\U0001F1E0-\U0001F1FF"
-                      u"\U00002702-\U000027B0"
-                      u"\U000024C2-\U0001F251"
-                      "]+", flags=re.UNICODE)
-            return pattern.sub(r'', content)
 # endregion

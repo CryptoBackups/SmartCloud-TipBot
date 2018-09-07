@@ -1,9 +1,10 @@
 import discord
 from discord.ext import commands
-from utils import output, parsing, checks, mysql_module
+from utils import output, parsing, checks, mysql_module, helpers
 import os
 import traceback
 import database
+import re
 
 config = parsing.parse_json('config.json')
 
@@ -44,15 +45,10 @@ async def on_message(message):
     if message.author.id == bot.user.id:
         return
 
-    if Mysql.user_last_msg_check(message.author.id, message.content, is_private_dm(message.channel)) == False:
+    if Mysql.user_last_msg_check(message.author.id, message.content, helpers.is_private_dm(bot, message.channel)) == False:
         return        
 
     await bot.process_commands(message)
-
-def is_private_dm(channel):
-    if channel in bot.private_channels:
-       return True
-    return False 
 
 async def send_cmd_help(ctx):
     if ctx.invoked_subcommand:
