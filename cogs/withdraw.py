@@ -10,6 +10,8 @@ mysql = mysql_module.Mysql()
 class Withdraw:
     def __init__(self, bot):
         self.bot = bot
+        config = parsing.parse_json('config.json')         
+        self.currency_symbol = config["currency_symbol"]                 
 
     @commands.command(pass_context=True)
     async def withdraw(self, ctx, address: str, amount: float):
@@ -50,7 +52,7 @@ class Withdraw:
         if txid is None:
             await self.bot.say("{} your withdraw failed despite having the necessary balance! Please contact the support team".format(ctx.message.author.mention))
         else:
-            await self.bot.say("{} **Withdrew {} CRU! :money_with_wings:**\nView the transaction here: http://202.5.23.130:75/api/getrawtransaction?txid={}&decrpt=0".format(ctx.message.author.mention, str(amount), txid))
+            await self.bot.say("{} **Withdrew {} {}! :moneybag:**\nView the transaction here: http://vetani.mymn.cf/tx/{}".format(ctx.message.author.mention, str(amount), self.currency_symbol, txid))
 
 def setup(bot):
     bot.add_cog(Withdraw(bot))
