@@ -3,7 +3,6 @@ import discord
 from utils import parsing, rpc_module, helpers
 from decimal import Decimal
 import datetime
-import re
 
 rpc = rpc_module.Rpc()
 
@@ -386,20 +385,23 @@ class Mysql:
 
 # region Active users
 
-        def get_active_users(self, user_activity_since_minutes, min_num_messages_requred=0):         
+        def get_active_users_id(self, user_activity_since_minutes, is_rain_activity):         
             since_ts = datetime.datetime.utcnow() - datetime.timedelta(minutes=user_activity_since_minutes)
         
             cursor = self.__setup_cursor(
                 pymysql.cursors.DictCursor)
-            to_exec = "SELECT snowflake_pk, balance, balance_unconfirmed, address, last_msg_time, rain_last_msg_time, rain_msg_count FROM users WHERE last_msg_time > %s ORDER BY snowflake_pk"
+            if not is_rain_activity:
+                to_exec = "SELECT snowflake_pk, balance, balance_unconfirmed, address, last_msg_time, rain_last_msg_time, rain_msg_count FROM users WHERE last_msg_time > %s ORDER BY snowflake_pk"
+            else:
+                to_exec = "SELECT snowflake_pk, balance, balance_unconfirmed, address, last_msg_time, rain_last_msg_time, rain_msg_count FROM users WHERE rain_last_msg_time > %s ORDER BY snowflake_pk"
             cursor.execute(to_exec, (str(since_ts)))
             users = cursor.fetchall()
             cursor.close()
             
             return_ids = []
             for user in users:
-                if int(user["rain_msg_count"]) >= min_num_messages_requred:
-                    return_ids.append(user["snowflake_pk"])
+                return_ids.append(user["snowflake_pk"])
+                
             return return_ids
 
 # endregion
