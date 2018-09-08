@@ -76,53 +76,5 @@ class Rain:
         else:
             await self.bot.say(long_soak_msg)
 
-    #     users_to_tip = list(set(users_to_tip))
-    #     if len(users_to_tip) < 1:
-    #         raise util.TipBotException("no_valid_recipient")
-    #     if int(amount / len(users_to_tip)) < 1:
-    #         raise util.TipBotException("invalid_tipsplit")
-    #     user = db.get_user_by_id(message.author.id, user_name=message.author.name)
-    #     if user is None:
-    #         return
-    #     balance = await wallet.get_balance(user)
-    #     user_balance = balance['available']
-    #     if user_balance < amount:
-    #         await add_x_reaction(message)
-    #         await post_dm(message.author, INSUFFICIENT_FUNDS_TEXT)
-    #         return
-    #     # At this point stash this as the last rain for this user
-    #     if message.author.id not in last_rains:
-    #         last_rains[message.author.id] = datetime.datetime.utcnow()
-    #     else:
-    #         rain_delta = (datetime.datetime.utcnow() - last_rains[message.author.id]).total_seconds()
-    #         if RAIN_COOLDOWN > rain_delta:
-    #             await post_dm(message.author, "You can rain again in {0:.2f} seconds", RAIN_COOLDOWN - rain_delta)
-    #             return
-    #     last_rains[message.author.id] = datetime.datetime.utcnow()
-    #     # Distribute Tips
-    #     tip_amount = int(amount / len(users_to_tip))
-    #     # Recalculate actual tip amount as it may be smaller now
-    #     real_amount = tip_amount * len(users_to_tip)
-    #     # 1) Make all transactions first
-    #     for member in users_to_tip:
-    #         uid = str(uuid.uuid4())
-    #         actual_amt = await wallet.make_transaction_to_user(user, tip_amount, member.id, member.name, uid)
-    #     # 2) Add reaction
-    #     await react_to_message(message, amount)
-    #     await message.add_reaction('\U0001F4A6') # Sweat Drops
-    #     # 3) Update tip stats
-    #     db.update_tip_stats(user, real_amount,rain=True)
-    #     db.mark_user_active(user)
-    #     # 4) Send DMs (do this last because this takes the longest)
-    #     for member in users_to_tip:
-    #         if not db.muted(member.id, message.author.id):
-    #             await post_dm(member, TIP_RECEIVED_TEXT, actual_amt, message.author.name, message.author.id)
-    # except util.TipBotException as e:
-    #     if e.error_type == "amount_not_found" or e.error_type == "usage_error":
-    #         await post_usage(message, RAIN)
-    #     elif e.error_type == "no_valid_recipient":
-    #         await post_dm(message.author, RAIN_NOBODY)
-    #     elif e.error_type == "invalid_tipsplit":
-    #         await post_dm(message.author, TIPSPLIT_SMALL)  
 def setup(bot):
     bot.add_cog(Rain(bot))
