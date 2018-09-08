@@ -26,10 +26,19 @@
             "soak_min_received": 0.001,
             "use_min_received": false
         },
+        "rain": {
+            "user_activity_required_m": 30,            
+            "min_num_messages_requred": 4,
+            "delay_between_messages_required_s": 60,
+            "min_num_words_required": 3,
+            "max_recipients": 50,
+            "use_max_recipients": false,            
+            "min_amount": 1         
+        },           
         "txfee": 0.001,
         "owners": ["owners discord id"],
-        "prefix": "!",
-        "description": "Verge Tipbot",
+        "prefix": "?",
+        "description": "MyMn Tipbot",
         "currency_symbol": "MyMn"          
     }
 ]}

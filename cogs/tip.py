@@ -9,6 +9,8 @@ mysql = mysql_module.Mysql()
 class Tip:
     def __init__(self, bot):
         self.bot = bot
+        config = parsing.parse_json('config.json')         
+        self.currency_symbol = config["currency_symbol"]  
 
     @commands.command(pass_context=True)
     @commands.check(checks.in_server)
@@ -34,7 +36,7 @@ class Tip:
             await self.bot.say("{} **:warning:You cannot tip more money than you have!:warning:**".format(ctx.message.author.mention))
         else:
             mysql.add_tip(snowflake, tip_user, amount)
-            await self.bot.say("{} **Tipped {} {} CRU! :money_with_wings:**".format(ctx.message.author.mention, user.mention, str(amount)))
+            await self.bot.say("{} **Tipped {} {} {}! :moneybag:**".format(ctx.message.author.mention, user.mention, str(amount), self.currency_symbol))
 
 def setup(bot):
     bot.add_cog(Tip(bot))

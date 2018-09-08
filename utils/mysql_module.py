@@ -1,7 +1,8 @@
 import pymysql.cursors
 import discord
-from utils import parsing, rpc_module
+from utils import parsing, rpc_module, helpers
 from decimal import Decimal
+import datetime
 
 rpc = rpc_module.Rpc()
 
@@ -62,7 +63,7 @@ class Mysql:
             """
             cursor = self.__setup_cursor(
                 pymysql.cursors.DictCursor)
-            to_exec = "SELECT snowflake_pk, address, balance, balance_unconfirmed FROM users WHERE snowflake_pk LIKE %s"
+            to_exec = "SELECT snowflake_pk, address, balance, balance_unconfirmed, last_msg_time, rain_last_msg_time, rain_msg_count FROM users WHERE snowflake_pk LIKE %s"
             cursor.execute(to_exec, (str(snowflake)))
             result_set = cursor.fetchone()
             cursor.close()
@@ -70,20 +71,22 @@ class Mysql:
             if result_set is None:
                 address = rpc.getnewaddress(snowflake)
                 self.make_user(snowflake, address)
+            
+            return result_set
 
         def get_user(self, snowflake):
             cursor = self.__setup_cursor(
                 pymysql.cursors.DictCursor)
-            to_exec = "SELECT snowflake_pk, balance, balance_unconfirmed, address FROM users WHERE snowflake_pk LIKE %s"
+            to_exec = "SELECT snowflake_pk, balance, balance_unconfirmed, address, last_msg_time, rain_last_msg_time, rain_msg_count FROM users WHERE snowflake_pk LIKE %s"
             cursor.execute(to_exec, (str(snowflake)))
             result_set = cursor.fetchone()
             cursor.close()
-            return result_set
+            return result_set         
 
         def get_user_by_address(self, address):
             cursor = self.__setup_cursor(
                 pymysql.cursors.DictCursor)           
-            to_exec = "SELECT snowflake_pk, balance, balance_unconfirmed, address FROM users WHERE address LIKE %s"
+            to_exec = "SELECT snowflake_pk, balance, balance_unconfirmed, address, last_msg_time, rain_last_msg_time, rain_msg_count FROM users WHERE address LIKE %s"
             cursor.execute(to_exec, (str(address)))
             result_set = cursor.fetchone()
             cursor.close()
@@ -302,4 +305,103 @@ class Mysql:
             cursor.execute(to_exec, (to, str(server.id),))
             cursor.close()
             self.__connection.commit()
+# endregion
+
+# region Last message
+        def user_last_msg_check(self, user_id, content, is_private):
+            # Get user data or create the user if not found
+            user=self.check_for_user(user_id)
+
+            # If user was created, get user values
+            if user is None:
+                user=self.get_user(user_id)
+
+            # Get difference in seconds between now and last msg. If it is less than 1s, return False
+            if user["last_msg_time"] is not None:
+                since_last_msg_s = (datetime.datetime.utcnow() - user["last_msg_time"]).total_seconds()
+                if since_last_msg_s < 1:
+                    return False
+            else:
+                since_last_msg_s = None
+
+            # Do not process the messages made in DM
+            if not is_private:
+                self.update_last_msg(user, since_last_msg_s, content)
+
+            return True
+
+        def  update_last_msg(self, user, last_msg_time, content):
+            rain_config = parsing.parse_json('config.json')['rain']
+            min_num_words_required = rain_config["min_num_words_required"]
+            delay_between_messages_required_s = rain_config["delay_between_messages_required_s"]            
+            user_activity_required_m = rain_config["user_activity_required_m"]
+
+            content_adjusted = helpers.unicode_strip(content)
+            words = content_adjusted.split(' ')
+            adjusted_count = 0
+            prev_len = 0
+            for word in words:
+                word = word.strip()
+                cur_len = len(word)
+                if cur_len > 0:
+                    if word.startswith(":") and word.endswith(":"):
+                        continue
+                    if prev_len == 0:
+                        prev_len = cur_len
+                        adjusted_count += 1
+                    else:
+                        res = prev_len % cur_len
+                        prev_len = cur_len
+                        if res != 0:
+                            adjusted_count += 1
+                if adjusted_count >= min_num_words_required:
+                    break
+
+            if last_msg_time is None:
+                user["rain_msg_count"] = 0
+            else:                
+                if last_msg_time >= (user_activity_required_m * 60):
+                    user["rain_msg_count"] = 0
+            
+            is_accepted_delay_between_messages = False
+            if user["rain_last_msg_time"] is None:
+                is_accepted_delay_between_messages = True
+            elif (datetime.datetime.utcnow() - user["rain_last_msg_time"]).total_seconds() > delay_between_messages_required_s:
+                is_accepted_delay_between_messages = True
+
+            if adjusted_count >= min_num_words_required and is_accepted_delay_between_messages:
+                user["rain_msg_count"] += 1
+                user["rain_last_msg_time"] = datetime.datetime.utcnow()
+            user["last_msg_time"]=datetime.datetime.utcnow()
+
+            cursor = self.__setup_cursor(
+                pymysql.cursors.DictCursor)
+            to_exec = "UPDATE users SET last_msg_time = %s, rain_last_msg_time = %s, rain_msg_count = %s WHERE snowflake_pk = %s"
+            cursor.execute(to_exec, (user["last_msg_time"], user["rain_last_msg_time"], user["rain_msg_count"], user["snowflake_pk"]))
+
+            cursor.close()
+            self.__connection.commit()                      
+# endregion
+
+# region Active users
+
+        def get_active_users_id(self, user_activity_since_minutes, is_rain_activity):         
+            since_ts = datetime.datetime.utcnow() - datetime.timedelta(minutes=user_activity_since_minutes)
+        
+            cursor = self.__setup_cursor(
+                pymysql.cursors.DictCursor)
+            if not is_rain_activity:
+                to_exec = "SELECT snowflake_pk, balance, balance_unconfirmed, address, last_msg_time, rain_last_msg_time, rain_msg_count FROM users WHERE last_msg_time > %s ORDER BY snowflake_pk"
+            else:
+                to_exec = "SELECT snowflake_pk, balance, balance_unconfirmed, address, last_msg_time, rain_last_msg_time, rain_msg_count FROM users WHERE rain_last_msg_time > %s ORDER BY snowflake_pk"
+            cursor.execute(to_exec, (str(since_ts)))
+            users = cursor.fetchall()
+            cursor.close()
+            
+            return_ids = []
+            for user in users:
+                return_ids.append(user["snowflake_pk"])
+                
+            return return_ids
+
 # endregion

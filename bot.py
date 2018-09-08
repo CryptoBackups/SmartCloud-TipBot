@@ -1,9 +1,10 @@
 import discord
 from discord.ext import commands
-from utils import output, parsing, checks, mysql_module
+from utils import output, parsing, checks, mysql_module, helpers
 import os
 import traceback
 import database
+import re
 
 config = parsing.parse_json('config.json')
 
@@ -38,6 +39,16 @@ async def on_ready():
     output.success('Successfully loaded the following extension(s): {}'.format(', '.join(loaded_extensions)))
     output.info('You can now invite the bot to a server using the following link: https://discordapp.com/oauth2/authorize?client_id={}&scope=bot'.format(bot.user.id))
 
+@bot.event
+async def on_message(message):
+    # disregard messages sent by our own bot
+    if message.author.id == bot.user.id:
+        return
+
+    if Mysql.user_last_msg_check(message.author.id, message.content, helpers.is_private_dm(bot, message.channel)) == False:
+        return        
+
+    await bot.process_commands(message)
 
 async def send_cmd_help(ctx):
     if ctx.invoked_subcommand:
