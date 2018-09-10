@@ -43,7 +43,6 @@ class Rain:
         # Create tip list
         active_users = mysql.get_active_users_id(RAIN_REQUIRED_USER_ACTIVITY_M, True)
         if int(ctx.message.author.id) in active_users:
-            output.info("Message user found in active users list. Removing "+str(ctx.message.author.id))
             active_users.remove(int(ctx.message.author.id))
 
         if USE_MAX_RECIPIENTS:
