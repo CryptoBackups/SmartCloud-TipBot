@@ -12,22 +12,22 @@ class Pricing:
     @commands.command()
     async def price(self, amount=1):
         """
-        Checks the price of CRU
+        Checks the price of MyMn
         """
-        headers={"user-agent" : "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.78 Safari/537.36"}
-        try:
-            async with ClientSession() as session:
-                async with session.get("https://coinsmarkets.com/apicoin.php", headers=headers) as response:
-                    responseRaw = await response.read()
-                    priceData = json.loads(responseRaw)['BTC_CRU']
-                    embed = discord.Embed(colour=0x00FF00)
-                    embed.add_field(name="24-hour Volume", value="{} BTC".format(priceData['24htrade']))
-                    embed.add_field(name="24-hour Low", value="{} BTC".format(priceData['low24hr']))
-                    embed.add_field(name="24-hour High", value="{} BTC".format(priceData['high24hr']))
-                    embed.add_field(name="Price", value="{} CRU = {:.8f} BTC".format(amount, amount * float(priceData['last'])))
-                    await self.bot.say(embed=embed)
-        except:
-            await self.bot.say(":warning: Error fetching prices!")
+        # headers={"user-agent" : "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.78 Safari/537.36"}
+        # try:
+        #     async with ClientSession() as session:
+        #         async with session.get("https://coinsmarkets.com/apicoin.php", headers=headers) as response:
+        #             responseRaw = await response.read()
+        #             priceData = json.loads(responseRaw)['BTC_MYMN']
+        #             embed = discord.Embed(colour=0x00FF00)
+        #             embed.add_field(name="24-hour Volume", value="{} BTC".format(priceData['24htrade']))
+        #             embed.add_field(name="24-hour Low", value="{} BTC".format(priceData['low24hr']))
+        #             embed.add_field(name="24-hour High", value="{} BTC".format(priceData['high24hr']))
+        #             embed.add_field(name="Price", value="{} MYMN = {:.8f} BTC".format(amount, amount * float(priceData['last'])))
+        #             await self.bot.say(embed=embed)
+        # except:
+        #     await self.bot.say(":warning: Error fetching prices!")
 
 
 def setup(bot):

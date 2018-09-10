@@ -30,8 +30,24 @@ class Balance:
         except discord.HTTPException:
             await self.bot.say("I need the `Embed links` permission to send this")
 
+
     @commands.command(pass_context=True)
     async def balance(self, ctx):
+        """Display your balance"""
+        # Set important variables
+        snowflake = ctx.message.author.id
+
+        # Check if user exists in db
+        mysql.check_for_user(snowflake)
+
+        balance = mysql.get_balance(snowflake, check_update=True)
+        balance_unconfirmed = mysql.get_balance(snowflake, check_unconfirmed = True)
+
+        # Execute and return SQL Query
+        await self.do_embed(ctx.message.author, balance, balance_unconfirmed)
+
+    @commands.command(pass_context=True)
+    async def bal(self, ctx):
         """Display your balance"""
         # Set important variables
         snowflake = ctx.message.author.id

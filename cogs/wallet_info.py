@@ -1,22 +1,26 @@
 import discord, json, requests
 from discord.ext import commands
-from utils import rpc_module as rpc
+from utils import rpc_module as rpc, checks, parsing
 
 
 class Wallet:
     def __init__(self, bot):
         self.bot = bot
         self.rpc = rpc.Rpc()
+        config = parsing.parse_json('config.json')        
+        self.currency_symbol = config["currency_symbol"]     
 
-    @commands.command()
+    @commands.command(hidden=True)
+    @commands.check(checks.is_owner)
     async def wallet(self):
         """Shows wallet info"""
+
         info = self.rpc.getinfo()
         wallet_balance = str(float(info["balance"]))
         block_height = info["blocks"]
         connection_count = self.rpc.getconnectioncount()
         embed = discord.Embed(colour=discord.Colour.red())
-        embed.add_field(name="Balance", value="{:.8f} CRU".format(float(wallet_balance)))
+        embed.add_field(name="Balance", value="{:.8f} {}".format(float(wallet_balance), self.currency_symbol))
         embed.add_field(name="Connections", value=connection_count)
         embed.add_field(name="Block Height", value=block_height)
 

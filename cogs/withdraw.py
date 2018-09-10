@@ -15,7 +15,7 @@ class Withdraw:
 
     @commands.command(pass_context=True)
     async def withdraw(self, ctx, address: str, amount: float):
-        """Withdraw coins from your account to any Curium address"""
+        """Withdraw coins from your account to any MyMn address"""
         snowflake = ctx.message.author.id    
         if amount <= 0.0:
             await self.bot.say("{} **:warning:You cannot withdraw <= 0!:warning:**".format(ctx.message.author.mention))
