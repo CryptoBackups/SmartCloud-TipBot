@@ -52,7 +52,7 @@ class Withdraw:
         if txid is None:
             await self.bot.say("{} your withdraw failed despite having the necessary balance! Please contact the support team".format(ctx.message.author.mention))
         else:
-            await self.bot.say("{} **Withdrew {} {}! :moneybag:**\nView the transaction here: http://vetani.mymn.cf/tx/{}".format(ctx.message.author.mention, str(amount), self.currency_symbol, txid))
+            await self.bot.say("{} **Withdrew {} {}! :moneybag:**\nView the transaction here: http://explorer.mymn.cf/tx/{}".format(ctx.message.author.mention, str(amount), self.currency_symbol, txid))
 
 def setup(bot):
     bot.add_cog(Withdraw(bot))
