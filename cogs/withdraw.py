@@ -15,7 +15,7 @@ class Withdraw:
 
     @commands.command(pass_context=True)
     async def withdraw(self, ctx, address: str, amount: float):
-        """Withdraw coins from your account to any MyMn address"""
+        """Withdraw coins from your account to any SmartCloud address"""
         snowflake = ctx.message.author.id    
         if amount <= 0.0:
             await self.bot.say("{} **:warning:You cannot withdraw <= 0!:warning:**".format(ctx.message.author.mention))
@@ -52,7 +52,7 @@ class Withdraw:
         if txid is None:
             await self.bot.say("{} your withdraw failed despite having the necessary balance! Please contact the support team".format(ctx.message.author.mention))
         else:
-            await self.bot.say("{} **Withdrew {} {}! :moneybag:**\nView the transaction here: http://explorer.mymn.cf/tx/{}".format(ctx.message.author.mention, str(amount), self.currency_symbol, txid))
+            await self.bot.say("{} **Withdrew {} {}! :moneybag:**\nView the transaction here: http://explorer.smartcloudcoin.ml/tx/{}".format(ctx.message.author.mention, str(amount), self.currency_symbol, txid))
 
 def setup(bot):
     bot.add_cog(Withdraw(bot))

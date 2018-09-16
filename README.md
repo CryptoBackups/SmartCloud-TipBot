@@ -1,4 +1,4 @@
-MyMN Official Tip bot
+Smart Cloud Official Tip bot
 
 
 

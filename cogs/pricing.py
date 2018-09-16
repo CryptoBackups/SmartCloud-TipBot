@@ -12,19 +12,19 @@ class Pricing:
     @commands.command()
     async def price(self, amount=1):
         """
-        Checks the price of MyMn
+        Checks the price of SmartCloud
         """
         # headers={"user-agent" : "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.78 Safari/537.36"}
         # try:
         #     async with ClientSession() as session:
         #         async with session.get("https://coinsmarkets.com/apicoin.php", headers=headers) as response:
         #             responseRaw = await response.read()
-        #             priceData = json.loads(responseRaw)['BTC_MYMN']
+        #             priceData = json.loads(responseRaw)['BTC_SMRTC']
         #             embed = discord.Embed(colour=0x00FF00)
         #             embed.add_field(name="24-hour Volume", value="{} BTC".format(priceData['24htrade']))
         #             embed.add_field(name="24-hour Low", value="{} BTC".format(priceData['low24hr']))
         #             embed.add_field(name="24-hour High", value="{} BTC".format(priceData['high24hr']))
-        #             embed.add_field(name="Price", value="{} MYMN = {:.8f} BTC".format(amount, amount * float(priceData['last'])))
+        #             embed.add_field(name="Price", value="{} SMRTC = {:.8f} BTC".format(amount, amount * float(priceData['last'])))
         #             await self.bot.say(embed=embed)
         # except:
         #     await self.bot.say(":warning: Error fetching prices!")
