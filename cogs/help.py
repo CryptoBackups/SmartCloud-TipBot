@@ -8,6 +8,7 @@ class Help:
         bot.remove_command('help')
         config = parsing.parse_json('config.json')        
         self.prefix = config["prefix"]  
+		self.bot_descr = config["description"]
 
     @commands.command(pass_context=True)
     async def help(self, ctx):
@@ -34,7 +35,10 @@ class Help:
                 desc += "\n"
 
         embed = discord.Embed(description=desc)
-        embed.set_author(icon_url=self.bot.user.avatar_url, name="SmartcloudBot commands!")
+        bot_name="{} commands!".format(self.bot_descr)
+		
+		embed.set_author(icon_url=self.bot.user.avatar_url, name=bot_name)
+		
         try:
             await self.bot.send_message(ctx.message.author, embed=embed)
             if ctx.message.server is not None:

@@ -39,6 +39,7 @@
         "owners": ["owners discord id"],
         "prefix": "?",
         "description": "SmartCloud Tipbot",
+		"skip_cogs": ["soak","pricing", "invite"],
         "currency_symbol": "smrtc"          
     }
 ]}

@@ -44,6 +44,10 @@ class Rain:
         active_users = mysql.get_active_users_id(RAIN_REQUIRED_USER_ACTIVITY_M, True)
         if int(ctx.message.author.id) in active_users:
             active_users.remove(int(ctx.message.author.id))
+			
+		for user in active_users:
+            if user.bot:
+                active_users.remove(user)
 
         if USE_MAX_RECIPIENTS:
             len_receivers = min(len(active_users), MAX_RECIPIENTS)

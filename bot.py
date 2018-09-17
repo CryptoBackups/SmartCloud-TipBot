@@ -8,6 +8,8 @@ import re
 
 config = parsing.parse_json('config.json')
 
+skip_cogs=config['skip_cogs']
+
 Mysql = mysql_module.Mysql()
 
 bot = commands.Bot(command_prefix=config['prefix'], description=config["description"])
@@ -23,6 +25,7 @@ if "__pycache__" in startup_extensions:
 startup_extensions = [ext.replace('.py', '') for ext in startup_extensions]
 loaded_extensions = []
 
+startup_extensions=[x for x in startup_extensions if x not in skip_cogs]
 
 @bot.event
 async def on_ready():
