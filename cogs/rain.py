@@ -41,18 +41,14 @@ class Rain:
             return
 
         # Create tip list
-        active_users = mysql.get_active_users_id(RAIN_REQUIRED_USER_ACTIVITY_M, True)
-        if int(ctx.message.author.id) in active_users:
-            active_users.remove(int(ctx.message.author.id))
-			
-		for user in active_users:
-            if user.bot:
-                active_users.remove(user)
+        active_id_users = mysql.get_active_users_id(RAIN_REQUIRED_USER_ACTIVITY_M, True)
+        if int(ctx.message.author.id) in active_id_users:
+            active_id_users.remove(int(ctx.message.author.id))
 
         if USE_MAX_RECIPIENTS:
-            len_receivers = min(len(active_users), MAX_RECIPIENTS)
+            len_receivers = min(len(active_id_users), MAX_RECIPIENTS)
         else:
-            len_receivers = len(active_users)
+            len_receivers = len(active_id_users)
 
         if len_receivers == 0:
             await self.bot.say("{}, you are all alone if you don't include bots! Trying raining when people are online and active.".format(ctx.message.author.mention))
@@ -62,15 +58,18 @@ class Rain:
         if amount_split == 0:
             await self.bot.say("{} **:warning:{} is not enough to split between {} users:warning:**".format(ctx.message.author.mention, amount, len_receivers))
             return    
+                     
+        active_users = [x for x in ctx.message.server.members if int(x.id) in active_id_users and x.bot==False]
 
-        receivers = []
-        for i in range(len_receivers):
-            active_user = random.choice(active_users)
-            user=await self.bot.get_user_info(active_user)
-            receivers.append(user.mention)
-            active_users.remove(active_user)
-            mysql.check_for_user(user.id)
-            mysql.add_tip(snowflake, user.id, amount_split)
+        receivers = []        
+        for active_user in active_users:
+            receivers.append(active_user.mention)
+            mysql.check_for_user(active_user.id)
+            mysql.add_tip(snowflake, active_user.id, amount_split)
+
+        if len(receivers) == 0:
+            await self.bot.say("{}, you are all alone if you don't include bots! Trying raining when people are online and active.".format(ctx.message.author.mention))
+            return
 
         long_soak_msg = "{} **Rained {} {} on {} [{}] :moneybag:**".format(ctx.message.author.mention, str(amount_split), CURRENCY_SYMBOL, ', '.join([x for x in receivers]), str(amount))
 
