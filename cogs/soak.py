@@ -62,7 +62,7 @@ class Soak:
                     if role[0] in user.roles:
                         users_list.append(user)       
 
-        if role_id=="all":
+        if role_id!="":
             online_users = [x for x in users_list]
         else:
             online_users = [x for x in users_list if x.status == discord.Status.online]
