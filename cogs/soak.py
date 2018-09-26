@@ -23,14 +23,20 @@ class Soak:
         self.use_max_recipients = soak_config["use_max_recipients"]
         self.soak_min_received = soak_config["soak_min_received"]
         self.use_min_received = soak_config["use_min_received"]
-        self.currency_symbol = config["currency_symbol"]        
+        self.soak_minimum = soak_config['min_amount']        
+        self.currency_symbol = config["currency_symbol"] 
+        self.prefix = config["prefix"]                
 
     @commands.command(pass_context=True)
     @commands.check(checks.allow_soak)
-    async def soak(self, ctx, amount: float):
+    async def soak(self, ctx, amount: float, role_id=""):
         """Tip all online users"""
         if self.use_max_recipients and self.soak_max_recipients == 0:
             await self.bot.say("**:warning: max users for soak is set to 0! Talk to the config owner. :warning:**")
+            return
+
+        if amount < self.soak_minimum:
+            await self.bot.say("**:warning: Amount {} for soak is less than minimum {} required! :warning:**".format(amount,self.soak_minimum))
             return
 
         snowflake = ctx.message.author.id
@@ -42,13 +48,29 @@ class Soak:
             await self.bot.say("{} **:warning:You cannot soak more money than you have!:warning:**".format(ctx.message.author.mention))
             return
 
-        online_users = [x for x in ctx.message.server.members if x.status == discord.Status.online]
+        users_list=[]
+        if role_id=="" or role_id=="@everyone" or role_id=="@here" or role_id=="all":
+            users_list = ctx.message.server.members
+        else:
+            server_roles = ctx.message.server.roles
+            role=[x for x in server_roles if x.mention==role_id]
+            if len(role)==0:
+                await self.bot.say("{}, This role does not exist! To tip a single user, use {}tip command instead.".format(ctx.message.author.mention,self.prefix))
+                return
+            else:
+                for user in ctx.message.server.members:
+                    if role[0] in user.roles:
+                        users_list.append(user)       
+
+        if role_id=="all":
+            online_users = [x for x in users_list]
+        else:
+            online_users = [x for x in users_list if x.status == discord.Status.online]
+
         if ctx.message.author in online_users:
             online_users.remove(ctx.message.author)
 
-        for user in online_users:
-            if user.bot:
-                online_users.remove(user)
+        online_users=[x for x in online_users if x.bot==False]
 
         if self.use_max_recipients:
             len_receivers = min(len(online_users), self.soak_max_recipients)
@@ -67,20 +89,23 @@ class Soak:
             await self.bot.say("{} **:warning:{} is not enough to split between {} users:warning:**".format(ctx.message.author.mention, amount, len_receivers))
             return
 
-        receivers = []
-        for i in range(len_receivers):
-            user = random.choice(online_users)
-            receivers.append(user)
-            online_users.remove(user)
-            mysql.check_for_user(user.id)
-            mysql.add_tip(snowflake, user.id, amount_split)
+        if role_id != "all" and role_id!="@everyone" and role_id!="@here":
+            receivers = []
+            for i in range(len_receivers):
+                user = random.choice(online_users)
+                receivers.append(user)
+                online_users.remove(user)
+                mysql.check_for_user(user.id)
+                mysql.add_tip(snowflake, user.id, amount_split)
 
-        long_soak_msg = "{} **Soaked {} {} on {} [{}] :moneybag:**".format(ctx.message.author.mention, str(amount_split), self.currency_symbol, ', '.join([x.mention for x in receivers]), str(amount))
+            long_soak_msg = "{} **Soaked {} {} on {} [{}] :moneybag:**".format(ctx.message.author.mention, str(amount_split), self.currency_symbol, ', '.join([x.mention for x in receivers]), str(amount))
 
-        if len(long_soak_msg) > 2000:
-            await self.bot.say("{} **Soaked {} {} on {} users [{}] :moneybag:**".format(ctx.message.author.mention, str(amount_split), self.currency_symbol, len_receivers, str(amount)))
+            if len(long_soak_msg) > 2000:
+                await self.bot.say("{} **Soaked {} {} on {} users [{}] :moneybag:**".format(ctx.message.author.mention, str(amount_split), self.currency_symbol, len_receivers, str(amount)))
+            else:
+                await self.bot.say(long_soak_msg)
         else:
-            await self.bot.say(long_soak_msg)
+            await self.bot.say("{} **Soaked {} {} on {} users [{}] :moneybag:**".format(ctx.message.author.mention, str(amount_split), self.currency_symbol, len_receivers, str(amount)))
 
     @commands.command()
     async def soak_info(self):        
