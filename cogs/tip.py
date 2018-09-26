@@ -14,29 +14,32 @@ class Tip:
 
     @commands.command(pass_context=True)
     @commands.check(checks.in_server)
-    async def tip(self, ctx, user:discord.Member, amount:float):
-        """Tip a user coins"""
+    async def tip(self, ctx,  amount:float, *args: discord.Member):
+        """Tip users coins. You can tip multiple users"""
         snowflake = ctx.message.author.id
 
-        tip_user = user.id
-        if snowflake == tip_user:
-            await self.bot.say("{} **:warning:You cannot tip yourself!:warning:**".format(ctx.message.author.mention))
-            return
+        users=list(set(args))
+        for user in users:
 
-        if amount <= 0.0:
-            await self.bot.say("{} **:warning:You cannot tip <= 0!:warning:**".format(ctx.message.author.mention))
-            return
+            tip_user = user.id
+            if snowflake == tip_user:
+                await self.bot.say("{} **:warning:You cannot tip yourself!:warning:**".format(ctx.message.author.mention))
+                return
 
-        mysql.check_for_user(snowflake)
-        mysql.check_for_user(tip_user)
+            if amount <= 0.0:
+                await self.bot.say("{} **:warning:You cannot tip <= 0!:warning:**".format(ctx.message.author.mention))
+                return
 
-        balance = mysql.get_balance(snowflake, check_update=True)
+            mysql.check_for_user(snowflake)
+            mysql.check_for_user(tip_user)
 
-        if float(balance) < amount:
-            await self.bot.say("{} **:warning:You cannot tip more money than you have!:warning:**".format(ctx.message.author.mention))
-        else:
-            mysql.add_tip(snowflake, tip_user, amount)
-            await self.bot.say("{} **Tipped {} {} {}! :moneybag:**".format(ctx.message.author.mention, user.mention, str(amount), self.currency_symbol))
+            balance = mysql.get_balance(snowflake, check_update=True)
+
+            if float(balance) < amount:
+                await self.bot.say("{} **:warning:You cannot tip more money than you have!:warning:**".format(ctx.message.author.mention))
+            else:
+                mysql.add_tip(snowflake, tip_user, amount)
+                await self.bot.say("{} **Tipped {} {} {}! :moneybag:**".format(ctx.message.author.mention, user.mention, str(amount), self.currency_symbol))
 
 def setup(bot):
     bot.add_cog(Tip(bot))
