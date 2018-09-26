@@ -24,7 +24,8 @@
             "soak_max_recipients": 50,
             "use_max_recipients": false,
             "soak_min_received": 0.001,
-            "use_min_received": false
+            "use_min_received": false,
+            "min_amount": 1            
         },
         "rain": {
             "user_activity_required_m": 30,            
@@ -38,8 +39,9 @@
         "txfee": 0.001,
         "owners": ["owners discord id"],
         "prefix": "?",
-        "description": "SmartCloud Tipbot",
-		"skip_cogs": ["soak","pricing", "invite"],
-        "currency_symbol": "smrtc"          
+        "description": "MyMn Tipbot",
+        "skip_cogs": [""],  
+        "explorer_url": "myexplorer.com/tx/",              
+        "currency_symbol": "MyMn"          
     }
 ]}
